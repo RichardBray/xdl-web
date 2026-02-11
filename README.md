@@ -1,11 +1,11 @@
 # xdl-web
 
-Web UI for [x-dl](https://github.com/robray/x-dl) — download tweets and generate articles from video.
+Web UI for [x-dl](https://github.com/RichardBray/x-dl) — download tweets and generate articles from video.
 
 ## Prerequisites
 
 - [Bun](https://bun.sh/) runtime
-- [x-dl](../x-dl) package (linked locally or installed)
+- [x-dl](https://github.com/RichardBray/x-dl) package (linked locally or installed)
 - `ffmpeg` on PATH (`brew install ffmpeg`)
 - Playwright Chromium (`bunx playwright install chromium`)
 - `OPENAI_API_KEY` and `ANTHROPIC_API_KEY` env vars (for article generation)
