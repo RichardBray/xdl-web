@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
 import { AboutSection } from '../components/AboutSection';
-import { getCached, setCache, getDownloadHistory, addToDownloadHistory, type DownloadHistoryItem } from '../utils/cache';
+import { getCached, setCache, clearCache, getDownloadHistory, addToDownloadHistory, type DownloadHistoryItem } from '../utils/cache';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -9,17 +9,12 @@ export function DownloadPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState('');
   const [history, setHistory] = useState<DownloadHistoryItem[]>(getDownloadHistory);
+  const [showRedownloadModal, setShowRedownloadModal] = useState(false);
+  const [pendingUrl, setPendingUrl] = useState('');
 
-  const handleDownload = async (url: string) => {
+  const performDownload = async (url: string) => {
     setStatus('loading');
     setMessage('Downloading video... This may take a moment.');
-
-    const cached = getCached(url, 'download');
-    if (cached && cached.type === 'download') {
-      setStatus('success');
-      setMessage(cached.message);
-      return;
-    }
 
     try {
       const res = await fetch('/api/download', {
@@ -60,6 +55,22 @@ export function DownloadPage() {
     }
   };
 
+  const handleDownload = async (url: string) => {
+    const cached = getCached(url, 'download');
+    if (cached && cached.type === 'download') {
+      setPendingUrl(url);
+      setShowRedownloadModal(true);
+      return;
+    }
+    performDownload(url);
+  };
+
+  const handleRedownload = () => {
+    setShowRedownloadModal(false);
+    clearCache(pendingUrl, 'download');
+    performDownload(pendingUrl);
+  };
+
   const formatDate = (ts: number) => {
     const d = new Date(ts);
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
@@ -98,6 +109,26 @@ export function DownloadPage() {
           </div>
         )}
       </main>
+
+      {showRedownloadModal && (
+        <div className="modal-overlay" onClick={() => setShowRedownloadModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowRedownloadModal(false)}>✕</button>
+            <h2>Already Downloaded</h2>
+            <p style={{ color: 'var(--text-secondary)', margin: '0.75rem 0 1.5rem' }}>
+              You've already downloaded this video. Would you like to download it again?
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button className="cancel-btn" onClick={() => setShowRedownloadModal(false)}>
+                Cancel
+              </button>
+              <button className="pro-cta" onClick={handleRedownload}>
+                Download Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
