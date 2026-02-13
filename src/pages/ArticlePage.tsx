@@ -41,8 +41,15 @@ export function ArticlePage() {
       setArticle(savedState.article);
       setTranscript(savedState.transcript);
       setStep('done');
+      setActiveTab(savedState.activeTab || 'article');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (step !== 'idle' && step !== 'error' && article) {
+      saveState({ article, transcript, lastUrl: currentUrlRef.current, activeTab });
+    }
+  }, [step, article, transcript, activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (url: string) => {
     // Check cache first

@@ -236,6 +236,73 @@ fi
 
 section ""
 
+# ── Article State Persistence ──
+section "Article State Persistence"
+
+ab click "a[href='/article']" >/dev/null
+ab wait 1000 >/dev/null
+
+# Start article generation
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 5000 >/dev/null
+
+# Verify processing started
+assert_visible ".status-loading" "processing status appears"
+assert_visible ".progress-steps" "progress steps appear"
+
+# Navigate to download page
+ab click "a[href='/']" >/dev/null
+ab wait 1000 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/article"; then
+  fail "navigated to download page" "still on article page" "a[href='/']"
+else
+  pass "navigated to download page"
+fi
+
+# Navigate back to article page
+ab click "a[href='/article']" >/dev/null
+ab wait 2000 >/dev/null
+
+# Verify state is restored - processing should continue or show completed article
+processing_visible=$(ab is visible ".status-loading" 2>/dev/null || echo "false")
+article_visible=$(ab is visible ".article-display" 2>/dev/null || echo "false")
+progress_visible=$(ab is visible ".progress-steps" 2>/dev/null || echo "false")
+
+if [ "$processing_visible" = "true" ] || [ "$article_visible" = "true" ] || [ "$progress_visible" = "true" ]; then
+  pass "article state persists after navigation"
+else
+  fail "article state persists after navigation" "no progress, article, or processing visible"
+fi
+
+section ""
+
+# ── Nav Brand Navigation ──
+section "Nav Brand Navigation"
+
+ab click "a[href='/article']" >/dev/null
+ab wait 1000 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/article"; then
+  pass "on article page before brand click"
+else
+  fail "on article page before brand click" "got: $current_url"
+fi
+
+# Click x-dl brand
+ab click ".nav-brand" >/dev/null
+ab wait 1000 >/dev/null
+
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "$BASE_URL" && ! echo "$current_url" | grep -q "/article"; then
+  pass "x-dl brand navigates to home"
+else
+  fail "x-dl brand navigates to home" "got: $current_url" ".nav-brand"
+fi
+
+section ""
+
 # ── Article Markdown Rendering ──
 section "Article Markdown Rendering"
 

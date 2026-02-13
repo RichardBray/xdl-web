@@ -10,6 +10,7 @@ interface ArticleState {
   article: string;
   transcript: TranscriptSegment[];
   lastUrl: string;
+  activeTab?: 'article' | 'transcript';
 }
 
 interface ArticleContextType {
