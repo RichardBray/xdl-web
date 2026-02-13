@@ -1,26 +1,66 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { ArticleDisplay } from '../components/ArticleDisplay';
+import { TranscriptDisplay } from '../components/TranscriptDisplay';
+import { getCached, setCache } from '../utils/cache';
+
 type ArticleStep = 'downloading' | 'extracting_audio' | 'transcribing' | 'writing' | 'done' | 'error';
 type PageStep = ArticleStep | 'idle';
+type Tab = 'article' | 'transcript';
+
+interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
 
 export function ArticlePage() {
   const [step, setStep] = useState<PageStep>('idle');
   const [article, setArticle] = useState('');
+  const [transcript, setTranscript] = useState<TranscriptSegment[]>([]);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>('article');
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentUrlRef = useRef('');
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (url: string) => {
+    // Check cache first
+    const cached = getCached(url, 'article');
+    if (cached && cached.type === 'article') {
+      setArticle(cached.article);
+      setTranscript(cached.transcript);
+      setStep('done');
+      setActiveTab('article');
+      setError('');
+      return;
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
+    currentUrlRef.current = url;
 
     setStep('downloading');
     setArticle('');
+    setTranscript([]);
     setError('');
     setCopied(false);
+    setActiveTab('article');
+    setShowTimeoutWarning(false);
+
+    // Start timeout warning timer (170s)
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setShowTimeoutWarning(true), 170_000);
 
     try {
       const res = await fetch('/api/article', {
@@ -46,6 +86,7 @@ export function ArticlePage() {
 
       const decoder = new TextDecoder();
       let buffer = '';
+      let fullArticle = '';
 
       while (true) {
         const { done, value } = await reader.read();
@@ -64,8 +105,18 @@ export function ArticlePage() {
             if (currentEvent === 'stage') {
               setStep(data as ArticleStep);
             } else if (currentEvent === 'chunk') {
+              fullArticle += data;
               setArticle(prev => prev + data);
             } else if (currentEvent === 'done') {
+              if (data && data.transcript) {
+                setTranscript(data.transcript);
+                setCache(currentUrlRef.current, {
+                  type: 'article',
+                  article: fullArticle,
+                  transcript: data.transcript,
+                  timestamp: Date.now(),
+                });
+              }
               setStep('done');
             } else if (currentEvent === 'error') {
               setError(data);
@@ -79,6 +130,9 @@ export function ArticlePage() {
       if ((err as Error).name === 'AbortError') return;
       setError(err instanceof Error ? err.message : 'Network error');
       setStep('error');
+    } finally {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setShowTimeoutWarning(false);
     }
   };
 
@@ -109,6 +163,12 @@ export function ArticlePage() {
           <ProgressSteps currentStep={step === 'done' ? 'done' : step as ArticleStep} />
         )}
 
+        {showTimeoutWarning && isProcessing && (
+          <div className="timeout-warning">
+            Processing is taking longer than expected. Please wait...
+          </div>
+        )}
+
         {step === 'error' && (
           <div className="status status-error">
             <p>{error}</p>
@@ -116,23 +176,48 @@ export function ArticlePage() {
         )}
 
         {(step === 'writing' || step === 'done') && article && (
-          <div style={{ position: 'relative' }}>
-            <ArticleDisplay article={article} />
-            <button
-              onClick={handleCopy}
-              className="copy-btn"
-              style={{
-                position: 'absolute',
-                top: '0.5rem',
-                right: '0.5rem',
-                padding: '0.4rem 0.8rem',
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-              }}
-            >
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-          </div>
+          <>
+            {step === 'done' && transcript.length > 0 && (
+              <div className="tabs">
+                <button
+                  className={`tab-btn ${activeTab === 'article' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('article')}
+                >
+                  Article
+                </button>
+                <button
+                  className={`tab-btn ${activeTab === 'transcript' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('transcript')}
+                >
+                  Transcript
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'article' && (
+              <div style={{ position: 'relative' }}>
+                <ArticleDisplay article={article} />
+                <button
+                  onClick={handleCopy}
+                  className="copy-btn"
+                  style={{
+                    position: 'absolute',
+                    top: '0.5rem',
+                    right: '0.5rem',
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'transcript' && transcript.length > 0 && (
+              <TranscriptDisplay segments={transcript} />
+            )}
+          </>
         )}
       </main>
     </>

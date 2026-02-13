@@ -376,6 +376,79 @@ header h1 {
   margin: 1.5rem 0;
 }
 
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── Transcript ── */
+.transcript-display {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  font-size: 0.85rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.transcript-segment {
+  margin-bottom: 1.25rem;
+}
+
+.transcript-timestamp {
+  color: var(--accent);
+  font-size: 0.8rem;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.transcript-text {
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Timeout Warning Banner ── */
+.timeout-warning {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(227, 179, 65, 0.12);
+  border: 1px solid rgba(227, 179, 65, 0.3);
+  border-radius: var(--radius);
+  color: #e3b341;
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: slideIn 0.25s ease-out;
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .app {
