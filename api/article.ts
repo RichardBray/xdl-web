@@ -3,45 +3,38 @@ import type { TweetInfo } from 'x-dl/src/types.ts';
 
 const anthropic = new Anthropic();
 
+const SYSTEM_PROMPT = `You are a skilled journalist. Write a well-structured article based on this video transcript. Maintain the speaker's key points and tone. Use clear headings, an engaging introduction, and a conclusion. Format in markdown.`;
+
 /**
- * Generate an article from a video transcript using Claude.
+ * Generate an article from a video transcript using Claude (streaming).
+ * Yields text chunks as they arrive.
  */
-export async function generateArticle(
+export async function* generateArticle(
   transcript: string,
   tweetInfo: TweetInfo | null
-): Promise<string> {
+): AsyncGenerator<string> {
   const context = tweetInfo
-    ? `This is a transcript from a video posted on X/Twitter by @${tweetInfo.author} (${tweetInfo.url}).`
-    : 'This is a transcript from a video posted on X/Twitter.';
+    ? `Here is the transcript from a Twitter/X video by @${tweetInfo.author}:`
+    : 'Here is the transcript from a Twitter/X video:';
 
-  const message = await anthropic.messages.create({
+  const stream = anthropic.messages.stream({
     model: 'claude-sonnet-4-5-20250929',
     max_tokens: 4096,
+    system: SYSTEM_PROMPT,
     messages: [
       {
         role: 'user',
-        content: `${context}
-
-Here is the transcript:
-
-${transcript}
-
-Please write a well-structured article based on this transcript. The article should:
-- Have a clear, engaging title
-- Be written in a professional journalistic style
-- Capture the key points and insights from the video
-- Be well-organized with paragraphs
-- Be concise but comprehensive
-
-Return the article in Markdown format.`,
+        content: `${context}\n\n${transcript}\n\nPlease write a well-structured article based on this transcript.`,
       },
     ],
   });
 
-  const block = message.content[0];
-  if (block.type !== 'text') {
-    throw new Error('Unexpected response format from Claude');
+  for await (const event of stream) {
+    if (
+      event.type === 'content_block_delta' &&
+      event.delta.type === 'text_delta'
+    ) {
+      yield event.delta.text;
+    }
   }
-
-  return block.text;
 }

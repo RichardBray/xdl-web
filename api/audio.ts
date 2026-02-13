@@ -4,17 +4,18 @@ import { randomUUID } from 'node:crypto';
 
 /**
  * Extract audio from a video URL using ffmpeg.
- * Returns the path to the temporary .mp3 file.
+ * Returns the path to the temporary .wav file.
  */
 export async function extractAudio(videoUrl: string): Promise<string> {
-  const outputPath = join(tmpdir(), `xdl-audio-${randomUUID()}.mp3`);
+  const outputPath = join(tmpdir(), `xdl-audio-${randomUUID()}.wav`);
 
   const proc = Bun.spawn([
     'ffmpeg',
     '-i', videoUrl,
     '-vn',
-    '-acodec', 'libmp3lame',
-    '-q:a', '4',
+    '-acodec', 'pcm_s16le',
+    '-ar', '16000',
+    '-ac', '1',
     '-y',
     outputPath,
   ], {

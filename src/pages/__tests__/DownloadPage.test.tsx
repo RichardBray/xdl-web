@@ -8,14 +8,31 @@ describe('DownloadPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows loading state then success with download button', async () => {
+  it('downloads video as blob and triggers browser download', async () => {
+    const blobUrl = 'blob:http://localhost/fake-blob';
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue(blobUrl);
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+
+    const clickSpy = vi.fn();
+    const removeSpy = vi.fn();
+    const origCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string, options?: ElementCreationOptions) => {
+      const el = origCreateElement(tag, options);
+      if (tag === 'a') {
+        el.click = clickSpy;
+        el.remove = removeSpy;
+      }
+      return el;
+    });
+
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify({
-        videoUrl: '/videos/test.mp4',
-        format: 'mp4',
-        filename: 'test.mp4',
-        tweetInfo: null,
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+      new Response(new Blob(['video-data'], { type: 'video/mp4' }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'video/mp4',
+          'Content-Disposition': 'attachment; filename="test.mp4"',
+        },
+      }),
     );
 
     render(<DownloadPage />);
@@ -28,7 +45,9 @@ describe('DownloadPage', () => {
       expect(screen.getByText(/successfully/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('link', { name: /download video/i })).toHaveAttribute('href', '/videos/test.mp4');
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(blobUrl);
   });
 
   it('shows error on failed request', async () => {

@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ArticlePage } from '../ArticlePage';
 
-function makeSSEResponse(events: string[]) {
-  const body = events.join('\n') + '\n';
+function makeSSEResponse(events: Array<{ event: string; data: string }>) {
+  const body = events.map(e => `event: ${e.event}\ndata: ${JSON.stringify(e.data)}\n`).join('\n') + '\n';
   const stream = new ReadableStream({
     start(controller) {
       controller.enqueue(new TextEncoder().encode(body));
@@ -19,14 +19,16 @@ describe('ArticlePage', () => {
     vi.restoreAllMocks();
   });
 
-  it('advances progress steps and displays article on success', async () => {
+  it('advances progress steps and streams article chunks', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
       makeSSEResponse([
-        'data: {"step":"extracting"}',
-        'data: {"step":"extracting_audio"}',
-        'data: {"step":"transcribing"}',
-        'data: {"step":"generating"}',
-        'data: {"step":"done","article":"# My Article"}',
+        { event: 'stage', data: 'downloading' },
+        { event: 'stage', data: 'extracting_audio' },
+        { event: 'stage', data: 'transcribing' },
+        { event: 'stage', data: 'writing' },
+        { event: 'chunk', data: '# My ' },
+        { event: 'chunk', data: 'Article' },
+        { event: 'done', data: '' },
       ]),
     );
 
@@ -54,6 +56,25 @@ describe('ArticlePage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Server error')).toBeInTheDocument();
+    });
+  });
+
+  it('shows error from SSE error event', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      makeSSEResponse([
+        { event: 'stage', data: 'downloading' },
+        { event: 'error', data: 'Extraction failed' },
+      ]),
+    );
+
+    render(<ArticlePage />);
+
+    const input = screen.getByPlaceholderText(/video tweet/i);
+    await userEvent.type(input, 'https://x.com/user/status/1');
+    await userEvent.click(screen.getByRole('button'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Extraction failed')).toBeInTheDocument();
     });
   });
 });

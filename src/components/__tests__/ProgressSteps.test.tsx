@@ -7,10 +7,10 @@ describe('ProgressSteps', () => {
     const { container } = render(<ProgressSteps currentStep="transcribing" />);
     const steps = container.querySelectorAll('.progress-step');
 
-    expect(steps[0]).toHaveClass('complete'); // extracting
+    expect(steps[0]).toHaveClass('complete'); // downloading
     expect(steps[1]).toHaveClass('complete'); // extracting_audio
     expect(steps[2]).toHaveClass('active');   // transcribing
-    expect(steps[3]).toHaveClass('pending');  // generating
+    expect(steps[3]).toHaveClass('pending');  // writing
   });
 
   it('marks all steps complete when done', () => {
@@ -19,8 +19,8 @@ describe('ProgressSteps', () => {
     steps.forEach((step) => expect(step).toHaveClass('complete'));
   });
 
-  it('marks first step as active when extracting', () => {
-    const { container } = render(<ProgressSteps currentStep="extracting" />);
+  it('marks first step as active when downloading', () => {
+    const { container } = render(<ProgressSteps currentStep="downloading" />);
     const steps = container.querySelectorAll('.progress-step');
     expect(steps[0]).toHaveClass('active');
     expect(steps[1]).toHaveClass('pending');

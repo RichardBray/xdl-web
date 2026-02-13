@@ -9,8 +9,8 @@ const openai = new OpenAI();
 export async function transcribeAudio(audioPath: string): Promise<string> {
   const file = new File(
     [readFileSync(audioPath)],
-    'audio.mp3',
-    { type: 'audio/mpeg' }
+    'audio.wav',
+    { type: 'audio/wav' }
   );
 
   const response = await openai.audio.transcriptions.create({

@@ -168,6 +168,77 @@ assert_text_contains "button[type='submit']" "Generate" "article button says Gen
 
 section ""
 
+# ── Video Download (real tweet, m3u8 regression) ──
+section "Video Download (real tweet)"
+
+ab click "a[href='/']" >/dev/null
+ab wait 1000 >/dev/null
+
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+
+# Wait for loading status to appear, then poll until it resolves
+ab wait 3000 >/dev/null
+assert_visible ".status" "download status message appears"
+
+# Poll up to 120s for the download to finish (loading → success or error)
+elapsed=0
+while [ $elapsed -lt 120 ]; do
+  loading=$(ab is visible ".status-loading" 2>/dev/null || echo "false")
+  if [ "$loading" = "false" ]; then
+    break
+  fi
+  ab wait 3000 >/dev/null
+  elapsed=$((elapsed + 3))
+done
+
+# Verify success
+success_visible=$(ab is visible ".status-success" 2>/dev/null || echo "false")
+if [ "$success_visible" = "true" ]; then
+  pass "video download completes successfully"
+else
+  fail "video download completes successfully" "no .status-success found after ${elapsed}s" ".status-success"
+fi
+
+assert_text_contains ".status-success" "downloaded" "success message says downloaded"
+
+section ""
+
+# ── Article Markdown Rendering ──
+section "Article Markdown Rendering"
+
+ab click "a[href='/article']" >/dev/null
+ab wait 3000 >/dev/null
+
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+
+# Poll up to 180s for article generation to complete (steps: download → audio → transcribe → write)
+ab wait 5000 >/dev/null
+elapsed=0
+while [ $elapsed -lt 180 ]; do
+  done_visible=$(ab is visible ".article-display" 2>/dev/null || echo "false")
+  if [ "$done_visible" = "true" ]; then
+    break
+  fi
+  ab wait 5000 >/dev/null
+  elapsed=$((elapsed + 5))
+done
+
+assert_visible ".article-display" "article display container is visible"
+
+# Verify markdown was rendered (has heading tags)
+has_headings=$(ab eval "!!document.querySelector('.article-display h1, .article-display h2')" 2>/dev/null || echo "false")
+if [ "$has_headings" = "true" ]; then
+  pass "rendered HTML contains heading tags"
+else
+  fail "rendered HTML contains heading tags" "no h1/h2 found in article" ".article-display h1, .article-display h2"
+fi
+
+assert_visible ".copy-btn" "copy button is visible"
+
+section ""
+
 # ── Navigation ──
 section "Navigation"
 
