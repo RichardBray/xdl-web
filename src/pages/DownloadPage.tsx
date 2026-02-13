@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
+import { AboutSection } from '../components/AboutSection';
 import { getCached, setCache, getDownloadHistory, addToDownloadHistory, type DownloadHistoryItem } from '../utils/cache';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
@@ -73,6 +74,7 @@ export function DownloadPage() {
       </header>
 
       <main>
+        <AboutSection />
         <TweetInputForm onSubmit={handleDownload} isLoading={status === 'loading'} />
 
         {status !== 'idle' && (

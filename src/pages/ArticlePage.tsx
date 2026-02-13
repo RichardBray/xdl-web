@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
+import { AboutSection } from '../components/AboutSection';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { ArticleDisplay } from '../components/ArticleDisplay';
 import { TranscriptDisplay } from '../components/TranscriptDisplay';
@@ -164,6 +165,7 @@ export function ArticlePage() {
       </header>
 
       <main>
+        <AboutSection />
         <TweetInputForm
           onSubmit={handleSubmit}
           isLoading={isProcessing}
