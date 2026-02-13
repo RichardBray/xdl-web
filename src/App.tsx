@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { Nav } from './components/Nav';
+import { Footer } from './components/Footer';
 import { DownloadPage } from './pages/DownloadPage';
 import { ArticlePage } from './pages/ArticlePage';
 import { ProPage } from './pages/ProPage';
@@ -15,7 +16,8 @@ function App() {
           <Route path="/" element={<DownloadPage />} />
           <Route path="/article" element={<ArticlePage />} />
           <Route path="/pro" element={<ProPage />} />
-          </Routes>
+        </Routes>
+        <Footer />
       </ArticleProvider>
     </div>
   );
