@@ -789,6 +789,33 @@ header h1 {
   background: rgba(231, 233, 234, 0.08);
 }
 
+/* ── Footer ── */
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.site-footer a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.site-footer a:hover {
+  color: var(--text-primary);
+}
+
+.footer-separator {
+  color: var(--border);
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .app {
