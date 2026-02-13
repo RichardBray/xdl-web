@@ -171,6 +171,13 @@ export function ArticlePage() {
           buttonText="Generate"
         />
 
+        {isProcessing && !article && (
+          <div className="status status-loading">
+            <span className="spinner" />
+            <p>Generating article...</p>
+          </div>
+        )}
+
         {step !== 'idle' && step !== 'error' && (
           <ProgressSteps currentStep={step === 'done' ? 'done' : step as ArticleStep} />
         )}

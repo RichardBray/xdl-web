@@ -1,6 +1,6 @@
 /* ── Layout ── */
 .app {
-  max-width: 600px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 1rem;
   width: 100%;
@@ -628,6 +628,91 @@ header h1 {
   color: var(--success);
   font-size: 1.1rem;
   font-weight: 700;
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(91, 112, 131, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  animation: modalSlideUp 0.2s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modal-close:hover {
+  background: rgba(231, 233, 234, 0.08);
+  color: var(--text-primary);
+}
+
+.modal-content .signup-intro {
+  padding: 0 0 1rem;
+}
+
+.modal-content .signup-checkbox {
+  padding: 0.75rem 0;
+}
+
+.modal-content .signup-email {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-content .pro-cta {
+  margin: 1.25rem 0 0;
+}
+
+.modal-content .signup-success {
+  padding: 2rem 0;
 }
 
 /* ── Responsive ── */

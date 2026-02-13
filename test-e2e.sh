@@ -248,18 +248,19 @@ ab wait 1000 >/dev/null
 
 assert_visible ".crown-icon" "crown icon is visible"
 assert_text_contains "h1" "Pro" "Pro page heading"
-assert_visible ".pro-features" "features list is visible"
+assert_visible ".pro-feature-list" "features list is visible"
 assert_visible ".pro-cta" "signup CTA is visible"
 assert_text_contains ".pro-price-amount" "7.99" 'price shows $7.99'
 
 section ""
 
-# ── Pro Sign-Up Page ──
-section "Pro Sign-Up Page"
+# ── Pro Sign-Up Modal ──
+section "Pro Sign-Up Modal"
 
 ab click ".pro-cta" >/dev/null
 ab wait 1000 >/dev/null
 
+assert_visible ".modal-overlay" "signup modal is visible"
 assert_visible ".signup-form" "signup form is visible"
 assert_visible ".signup-interests" "interest checkboxes are visible"
 assert_visible ".signup-email" "email input is visible"
@@ -274,6 +275,10 @@ assert_visible ".signup-success" "success message is visible"
 assert_text_contains ".signup-success" "notify" "success says notify"
 
 section ""
+
+# Close modal before navigation tests
+ab click ".modal-close" >/dev/null 2>&1 || true
+ab wait 500 >/dev/null
 
 # ── Navigation ──
 section "Navigation"
