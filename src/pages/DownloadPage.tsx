@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
+import { getCached, setCache } from '../utils/cache';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
@@ -10,6 +11,13 @@ export function DownloadPage() {
   const handleDownload = async (url: string) => {
     setStatus('loading');
     setMessage('Downloading video... This may take a moment.');
+
+    const cached = getCached(url, 'download');
+    if (cached && cached.type === 'download') {
+      setStatus('success');
+      setMessage(cached.message);
+      return;
+    }
 
     try {
       const res = await fetch('/api/download', {
@@ -41,6 +49,7 @@ export function DownloadPage() {
 
       setStatus('success');
       setMessage('Video downloaded successfully!');
+      setCache(url, { type: 'download', message: 'Video downloaded successfully!', timestamp: Date.now() });
     } catch (err) {
       setStatus('error');
       setMessage(err instanceof Error ? err.message : 'Network error');
