@@ -37,6 +37,14 @@ export function setCache(url: string, entry: CacheEntry): void {
   }
 }
 
+export function clearCache(url: string, type: 'download' | 'article'): void {
+  try {
+    localStorage.removeItem(getKey(url, type));
+  } catch {
+    // silently ignore
+  }
+}
+
 // ── Download History ──
 
 const HISTORY_KEY = 'xdl-download-history';
