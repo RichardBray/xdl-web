@@ -1,3 +1,4 @@
+import pino from 'pino';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { streamSSE } from 'hono/streaming';
@@ -9,13 +10,14 @@ import { transcribeAudio } from './transcribe.ts';
 import { generateArticle } from './article.ts';
 import { unlink } from 'node:fs/promises';
 
+const logger = pino({ name: 'xdl-api' });
+
 // ── Startup dependency checks ──
 
 async function checkDependencies() {
   const ffmpegResult = Bun.spawnSync(['which', 'ffmpeg']);
   if (ffmpegResult.exitCode !== 0) {
-    console.error('Error: ffmpeg is not installed or not on PATH.');
-    console.error('Install it with: brew install ffmpeg');
+    logger.fatal('ffmpeg is not installed or not on PATH. Install with: brew install ffmpeg');
     process.exit(1);
   }
 
@@ -24,8 +26,7 @@ async function checkDependencies() {
     const browser = await chromium.launch({ headless: true });
     await browser.close();
   } catch {
-    console.error('Error: Playwright Chromium browser is not installed.');
-    console.error('Install it with: bunx playwright install chromium');
+    logger.fatal('Playwright Chromium not installed. Install with: bunx playwright install chromium');
     process.exit(1);
   }
 }
@@ -33,14 +34,20 @@ async function checkDependencies() {
 await checkDependencies();
 
 if (!process.env.OPENAI_API_KEY) {
-  console.warn('Warning: OPENAI_API_KEY is not set. /api/article endpoint will not work.');
+  logger.warn('OPENAI_API_KEY is not set. /api/article endpoint will not work.');
 }
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.warn('Warning: ANTHROPIC_API_KEY is not set. /api/article endpoint will not work.');
+  logger.warn('ANTHROPIC_API_KEY is not set. /api/article endpoint will not work.');
 }
 
 const app = new Hono();
 app.use('*', cors());
+
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  await next();
+  logger.info({ method: c.req.method, path: c.req.path, status: c.res.status, ms: Date.now() - start }, 'request');
+});
 
 // ── POST /api/download ──
 app.post('/api/download', async (c) => {
@@ -178,6 +185,7 @@ const PORT = Number(process.env.API_PORT) || 3001;
 export default {
   port: PORT,
   fetch: app.fetch,
+  idleTimeout: 200,
 };
 
-console.log(`API server running on http://localhost:${PORT}`);
+logger.info(`API server running on http://localhost:${PORT}`);
