@@ -1,9 +1,9 @@
-import { VideoExtractor } from 'x-dl/extractor';
-import { isValidTwitterUrl, parseTweetUrl, generateFilename } from 'x-dl/utils';
-import { extractAudio } from 'x-dl/audio';
-import { transcribeAudio } from 'x-dl/transcribe';
-import { generateArticle } from 'x-dl/article';
-import type { ExtractResult } from 'x-dl/types';
+import { VideoExtractor } from 'x-dl/src/extractor.ts';
+import { isValidTwitterUrl, parseTweetUrl, generateFilename } from 'x-dl/src/utils.ts';
+import type { ExtractResult } from 'x-dl/src/types.ts';
+import { extractAudio } from './audio.ts';
+import { transcribeAudio } from './transcribe.ts';
+import { generateArticle } from './article.ts';
 
 // ── Startup dependency checks ──
 
