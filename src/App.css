@@ -49,7 +49,7 @@
 
 .nav-link:hover {
   color: var(--text-primary);
-  background: rgba(231, 233, 234, 0.08);
+  background: var(--hover-bg);
 }
 
 .nav-link.active {
@@ -460,7 +460,7 @@ header h1 {
 }
 
 .tab-btn:hover {
-  background: rgba(231, 233, 234, 0.08);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 
@@ -517,7 +517,7 @@ header h1 {
 }
 
 .copy-btn:hover {
-  background: rgba(231, 233, 234, 0.08);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 
@@ -749,7 +749,7 @@ header h1 {
 }
 
 .modal-close:hover {
-  background: rgba(231, 233, 234, 0.08);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 
@@ -786,7 +786,7 @@ header h1 {
 }
 
 .cancel-btn:hover {
-  background: rgba(231, 233, 234, 0.08);
+  background: var(--hover-bg);
 }
 
 /* ── Footer ── */
