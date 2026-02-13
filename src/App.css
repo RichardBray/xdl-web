@@ -774,6 +774,21 @@ header h1 {
   padding: 2rem 0;
 }
 
+.cancel-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancel-btn:hover {
+  background: rgba(231, 233, 234, 0.08);
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .app {
