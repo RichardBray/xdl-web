@@ -2,13 +2,14 @@ import { useState, useRef } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
 import { ProgressSteps } from '../components/ProgressSteps';
 import { ArticleDisplay } from '../components/ArticleDisplay';
-type ArticleStep = 'extracting' | 'extracting_audio' | 'transcribing' | 'generating' | 'done' | 'error';
+type ArticleStep = 'downloading' | 'extracting_audio' | 'transcribing' | 'writing' | 'done' | 'error';
 type PageStep = ArticleStep | 'idle';
 
 export function ArticlePage() {
   const [step, setStep] = useState<PageStep>('idle');
   const [article, setArticle] = useState('');
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const handleSubmit = async (url: string) => {
@@ -16,9 +17,10 @@ export function ArticlePage() {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    setStep('extracting');
+    setStep('downloading');
     setArticle('');
     setError('');
+    setCopied(false);
 
     try {
       const res = await fetch('/api/article', {
@@ -53,20 +55,24 @@ export function ArticlePage() {
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
+        let currentEvent = '';
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const event = JSON.parse(line.slice(6));
-            if (event.step === 'done') {
-              setArticle(event.article);
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7).trim();
+          } else if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+            if (currentEvent === 'stage') {
+              setStep(data as ArticleStep);
+            } else if (currentEvent === 'chunk') {
+              setArticle(prev => prev + data);
+            } else if (currentEvent === 'done') {
               setStep('done');
-            } else if (event.step === 'error') {
-              setError(event.error);
+            } else if (currentEvent === 'error') {
+              setError(data);
               setStep('error');
-            } else {
-              setStep(event.step);
             }
-          } catch {}
+            currentEvent = '';
+          }
         }
       }
     } catch (err) {
@@ -74,6 +80,12 @@ export function ArticlePage() {
       setError(err instanceof Error ? err.message : 'Network error');
       setStep('error');
     }
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(article);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const isProcessing = step !== 'idle' && step !== 'done' && step !== 'error';
@@ -103,7 +115,25 @@ export function ArticlePage() {
           </div>
         )}
 
-        {step === 'done' && article && <ArticleDisplay article={article} />}
+        {(step === 'writing' || step === 'done') && article && (
+          <div style={{ position: 'relative' }}>
+            <ArticleDisplay article={article} />
+            <button
+              onClick={handleCopy}
+              className="copy-btn"
+              style={{
+                position: 'absolute',
+                top: '0.5rem',
+                right: '0.5rem',
+                padding: '0.4rem 0.8rem',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+              }}
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        )}
       </main>
     </>
   );

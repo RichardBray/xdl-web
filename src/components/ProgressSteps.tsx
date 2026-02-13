@@ -1,10 +1,10 @@
-type ArticleStep = 'extracting' | 'extracting_audio' | 'transcribing' | 'generating' | 'done' | 'error';
+type ArticleStep = 'downloading' | 'extracting_audio' | 'transcribing' | 'writing' | 'done' | 'error';
 
 const STEPS = [
-  { key: 'extracting', label: 'Extract Video' },
+  { key: 'downloading', label: 'Download Video' },
   { key: 'extracting_audio', label: 'Extract Audio' },
   { key: 'transcribing', label: 'Transcribe' },
-  { key: 'generating', label: 'Generate Article' },
+  { key: 'writing', label: 'Write Article' },
 ] as const;
 
 const stepOrder = STEPS.map((s) => s.key);

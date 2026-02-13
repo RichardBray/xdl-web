@@ -1,45 +1,46 @@
 import { useState } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
-import { StatusDisplay } from '../components/StatusDisplay';
-import { DownloadButton } from '../components/DownloadButton';
-
-interface ExtractResponse {
-  videoUrl: string;
-  format: string;
-  filename: string;
-  tweetInfo: { id: string; author: string; url: string } | null;
-}
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export function DownloadPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState('');
-  const [result, setResult] = useState<ExtractResponse | null>(null);
 
-  const handleExtract = async (url: string) => {
+  const handleDownload = async (url: string) => {
     setStatus('loading');
-    setMessage('Extracting video... This may take a moment.');
-    setResult(null);
+    setMessage('Downloading video... This may take a moment.');
 
     try {
-      const res = await fetch('/api/extract', {
+      const res = await fetch('/api/download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url }),
       });
 
-      const data = await res.json();
-
       if (!res.ok) {
+        const data = await res.json();
         setStatus('error');
-        setMessage(data.error || 'Extraction failed');
+        setMessage(data.error || 'Download failed');
         return;
       }
 
-      setResult(data);
+      const blob = await res.blob();
+      const disposition = res.headers.get('Content-Disposition');
+      const filenameMatch = disposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch?.[1] || 'video.mp4';
+
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+
       setStatus('success');
-      setMessage('Video extracted successfully!');
+      setMessage('Video downloaded successfully!');
     } catch (err) {
       setStatus('error');
       setMessage(err instanceof Error ? err.message : 'Network error');
@@ -54,14 +55,13 @@ export function DownloadPage() {
       </header>
 
       <main>
-        <TweetInputForm onSubmit={handleExtract} isLoading={status === 'loading'} />
-        <StatusDisplay status={status} message={message} />
-        {result && (
-          <DownloadButton
-            videoUrl={result.videoUrl}
-            filename={result.filename}
-            format={result.format}
-          />
+        <TweetInputForm onSubmit={handleDownload} isLoading={status === 'loading'} />
+
+        {status !== 'idle' && (
+          <div className={`status status-${status}`}>
+            {status === 'loading' && <span className="spinner" />}
+            <p>{message}</p>
+          </div>
         )}
       </main>
     </>
