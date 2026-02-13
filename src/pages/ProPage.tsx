@@ -28,13 +28,14 @@ export function ProPage() {
           <span className="pro-price-period">/month</span>
         </div>
 
-        <div className="pro-features">
-          {PRO_FEATURES.map((feature) => (
-            <div key={feature.name} className="pro-feature-card">
-              <h3>{feature.name}</h3>
-              <p>{feature.desc}</p>
-            </div>
-          ))}
+        <div className="pro-feature-card">
+          <ul className="pro-feature-list">
+            {PRO_FEATURES.map((feature) => (
+              <li key={feature.name}>
+                <strong>{feature.name}</strong> — {feature.desc}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <Link to="/pro/signup" className="pro-cta">
