@@ -133,6 +133,7 @@ assert_disabled "button[type='submit']" "submit button disabled when empty"
 # Check nav links
 assert_visible "a[href='/']" "Download nav link is visible"
 assert_visible "a[href='/article']" "Article nav link is visible"
+assert_visible "a[href='/pro']" "Pro nav link is visible"
 assert_text_contains "nav" "Download" "nav has Download text"
 assert_text_contains "nav" "Article" "nav has Article text"
 
@@ -239,6 +240,41 @@ assert_visible ".copy-btn" "copy button is visible"
 
 section ""
 
+# ── Pro Page ──
+section "Pro Page"
+
+ab click "a[href='/pro']" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".crown-icon" "crown icon is visible"
+assert_text_contains "h1" "Pro" "Pro page heading"
+assert_visible ".pro-features" "features list is visible"
+assert_visible ".pro-cta" "signup CTA is visible"
+assert_text_contains ".pro-price-amount" "7.99" "price shows $7.99"
+
+section ""
+
+# ── Pro Sign-Up Page ──
+section "Pro Sign-Up Page"
+
+ab click ".pro-cta" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".signup-form" "signup form is visible"
+assert_visible ".signup-interests" "interest checkboxes are visible"
+assert_visible ".signup-email" "email input is visible"
+
+# Check a feature checkbox
+ab click ".signup-checkbox:first-child input" >/dev/null
+ab fill ".signup-email" "test@example.com" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 2000 >/dev/null
+
+assert_visible ".signup-success" "success message is visible"
+assert_text_contains ".signup-success" "notify" "success says notify"
+
+section ""
+
 # ── Navigation ──
 section "Navigation"
 
@@ -258,6 +294,15 @@ if echo "$current_url" | grep -q "/article"; then
   pass "navigate to article page"
 else
   fail "navigate to article page" "url is: $current_url" "a[href='/article']"
+fi
+
+ab click "a[href='/pro']" >/dev/null
+ab wait 500 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/pro"; then
+  pass "navigate to pro page"
+else
+  fail "navigate to pro page" "url is: $current_url" "a[href='/pro']"
 fi
 
 section ""
