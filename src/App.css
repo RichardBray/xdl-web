@@ -50,6 +50,18 @@
   background: var(--loading-bg);
 }
 
+.nav-link-pro {
+  color: #e3b341 !important;
+}
+
+.nav-link-pro.active {
+  background: rgba(227, 179, 65, 0.12) !important;
+}
+
+.crown-icon-sm {
+  vertical-align: -2px;
+}
+
 /* ── Header ── */
 header {
   text-align: center;
