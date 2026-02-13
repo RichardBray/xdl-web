@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { TweetInputForm } from '../components/TweetInputForm';
-import { getCached, setCache } from '../utils/cache';
+import { getCached, setCache, getDownloadHistory, addToDownloadHistory, type DownloadHistoryItem } from '../utils/cache';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export function DownloadPage() {
   const [status, setStatus] = useState<Status>('idle');
   const [message, setMessage] = useState('');
+  const [history, setHistory] = useState<DownloadHistoryItem[]>(getDownloadHistory);
 
   const handleDownload = async (url: string) => {
     setStatus('loading');
@@ -50,10 +51,18 @@ export function DownloadPage() {
       setStatus('success');
       setMessage('Video downloaded successfully!');
       setCache(url, { type: 'download', message: 'Video downloaded successfully!', timestamp: Date.now() });
+      addToDownloadHistory(url, filename);
+      setHistory(getDownloadHistory());
     } catch (err) {
       setStatus('error');
       setMessage(err instanceof Error ? err.message : 'Network error');
     }
+  };
+
+  const formatDate = (ts: number) => {
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) +
+      ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -70,6 +79,20 @@ export function DownloadPage() {
           <div className={`status status-${status}`}>
             {status === 'loading' && <span className="spinner" />}
             <p>{message}</p>
+          </div>
+        )}
+
+        {history.length > 0 && (
+          <div className="download-history">
+            <h3 className="history-title">Recent Downloads</h3>
+            <ul className="history-list">
+              {history.map((item) => (
+                <li key={item.url} className="history-item">
+                  <span className="history-filename">{item.filename}</span>
+                  <span className="history-date">{formatDate(item.timestamp)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </main>

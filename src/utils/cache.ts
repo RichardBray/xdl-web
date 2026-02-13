@@ -36,3 +36,41 @@ export function setCache(url: string, entry: CacheEntry): void {
     // localStorage full or unavailable — silently ignore
   }
 }
+
+// ── Download History ──
+
+const HISTORY_KEY = 'xdl-download-history';
+const MAX_HISTORY = 10;
+
+export interface DownloadHistoryItem {
+  url: string;
+  filename: string;
+  timestamp: number;
+}
+
+export function getDownloadHistory(): DownloadHistoryItem[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function addToDownloadHistory(url: string, filename: string): void {
+  try {
+    let history = getDownloadHistory();
+    // Remove duplicate if exists
+    history = history.filter(item => item.url !== url);
+    // Add to front
+    history.unshift({ url, filename, timestamp: Date.now() });
+    // Trim to max
+    if (history.length > MAX_HISTORY) {
+      history = history.slice(0, MAX_HISTORY);
+    }
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  } catch {
+    // silently ignore
+  }
+}

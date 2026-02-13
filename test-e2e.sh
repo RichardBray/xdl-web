@@ -203,6 +203,11 @@ fi
 
 assert_text_contains ".status-success" "downloaded" "success message says downloaded"
 
+# Verify download history appears
+assert_visible ".download-history" "download history section is visible"
+assert_visible ".history-item" "history item is visible"
+assert_text_contains ".history-title" "Recent" "history title says Recent Downloads"
+
 section ""
 
 # ── Article Markdown Rendering ──

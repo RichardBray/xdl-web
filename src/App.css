@@ -248,6 +248,48 @@ header h1 {
   background: #00a06a;
 }
 
+/* ── Download History ── */
+.download-history {
+  padding: 1.25rem 0.5rem 0;
+}
+
+.history-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.history-filename {
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 1rem;
+}
+
+.history-date {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
 /* ── Progress Steps ── */
 .progress-steps {
   display: flex;
