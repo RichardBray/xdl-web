@@ -101,7 +101,12 @@ export function DownloadPage() {
             <ul className="history-list">
               {history.map((item) => (
                 <li key={item.url} className="history-item">
-                  <span className="history-filename">{item.filename}</span>
+                  <div className="history-main">
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="history-link">
+                      View Tweet
+                    </a>
+                    <span className="history-filename">{item.filename}</span>
+                  </div>
                   <span className="history-date">{formatDate(item.timestamp)}</span>
                 </li>
               ))}

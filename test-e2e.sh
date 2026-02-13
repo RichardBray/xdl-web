@@ -210,6 +210,32 @@ assert_text_contains ".history-title" "Recent" "history title says Recent Downlo
 
 section ""
 
+# ── Re-download Modal ──
+section "Re-download Modal"
+
+# Submit same URL again to trigger modal
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".modal-overlay" "re-download modal appears"
+assert_text_contains ".modal-content" "Already Downloaded" "modal says Already Downloaded"
+assert_text_contains ".modal-content" "Download Again" "modal has Download Again button"
+assert_visible ".cancel-btn" "cancel button is visible"
+
+# Close modal
+ab click ".cancel-btn" >/dev/null
+ab wait 500 >/dev/null
+
+modal_hidden=$(ab is visible ".modal-overlay" 2>/dev/null || echo "false")
+if [ "$modal_hidden" = "false" ]; then
+  pass "modal closes when cancel clicked"
+else
+  fail "modal closes when cancel clicked" "modal still visible"
+fi
+
+section ""
+
 # ── Article Markdown Rendering ──
 section "Article Markdown Rendering"
 
@@ -314,6 +340,37 @@ if echo "$current_url" | grep -q "/pro"; then
 else
   fail "navigate to pro page" "url is: $current_url" "a[href='/pro']"
 fi
+
+section ""
+
+# ── Footer ──
+section "Footer"
+
+# Check footer on download page
+ab click "a[href='/']" >/dev/null
+ab wait 500 >/dev/null
+
+assert_visible ".site-footer" "footer is visible on download page"
+assert_text_contains ".site-footer" "Richard Oliver Bray" "footer shows author name"
+assert_text_contains ".site-footer" "Report a bug" "footer shows Report a bug link"
+
+# Check footer link
+author_link=$(ab eval "document.querySelector('.site-footer a').href" 2>/dev/null || echo "")
+if echo "$author_link" | grep -q "RichOBray"; then
+  pass "footer links to author X profile"
+else
+  fail "footer links to author X profile" "got: $author_link" ".site-footer a"
+fi
+
+# Check footer on article page
+ab click "a[href='/article']" >/dev/null
+ab wait 500 >/dev/null
+assert_visible ".site-footer" "footer is visible on article page"
+
+# Check footer on pro page
+ab click "a[href='/pro']" >/dev/null
+ab wait 500 >/dev/null
+assert_visible ".site-footer" "footer is visible on pro page"
 
 section ""
 

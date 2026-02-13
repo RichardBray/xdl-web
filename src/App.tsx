@@ -12,11 +12,13 @@ function App() {
     <div className="app">
       <ArticleProvider>
         <Nav />
-        <Routes>
-          <Route path="/" element={<DownloadPage />} />
-          <Route path="/article" element={<ArticlePage />} />
-          <Route path="/pro" element={<ProPage />} />
-        </Routes>
+        <div className="app-content">
+          <Routes>
+            <Route path="/" element={<DownloadPage />} />
+            <Route path="/article" element={<ArticlePage />} />
+            <Route path="/pro" element={<ProPage />} />
+          </Routes>
+        </div>
         <Footer />
       </ArticleProvider>
     </div>
