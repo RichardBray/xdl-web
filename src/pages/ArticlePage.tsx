@@ -4,6 +4,7 @@ import { ProgressSteps } from '../components/ProgressSteps';
 import { ArticleDisplay } from '../components/ArticleDisplay';
 import { TranscriptDisplay } from '../components/TranscriptDisplay';
 import { getCached, setCache } from '../utils/cache';
+import { useArticleState } from '../contexts/ArticleContext';
 
 type ArticleStep = 'downloading' | 'extracting_audio' | 'transcribing' | 'writing' | 'done' | 'error';
 type PageStep = ArticleStep | 'idle';
@@ -26,12 +27,21 @@ export function ArticlePage() {
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentUrlRef = useRef('');
+  const { state: savedState, setState: saveState } = useArticleState();
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (savedState.article && step === 'idle') {
+      setArticle(savedState.article);
+      setTranscript(savedState.transcript);
+      setStep('done');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (url: string) => {
     // Check cache first
@@ -42,6 +52,7 @@ export function ArticlePage() {
       setStep('done');
       setActiveTab('article');
       setError('');
+      saveState({ article: cached.article, transcript: cached.transcript, lastUrl: url });
       return;
     }
 
@@ -118,6 +129,7 @@ export function ArticlePage() {
                 });
               }
               setStep('done');
+              saveState({ article: fullArticle, transcript: data.transcript, lastUrl: currentUrlRef.current });
             } else if (currentEvent === 'error') {
               setError(data);
               setStep('error');
