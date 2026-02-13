@@ -1,3 +1,4 @@
+import pino from 'pino';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { streamSSE } from 'hono/streaming';
@@ -9,13 +10,14 @@ import { transcribeAudio } from './transcribe.ts';
 import { generateArticle } from './article.ts';
 import { unlink } from 'node:fs/promises';
 
+const logger = pino({ name: 'xdl-api' });
+
 // ── Startup dependency checks ──
 
 async function checkDependencies() {
   const ffmpegResult = Bun.spawnSync(['which', 'ffmpeg']);
   if (ffmpegResult.exitCode !== 0) {
-    console.error('Error: ffmpeg is not installed or not on PATH.');
-    console.error('Install it with: brew install ffmpeg');
+    logger.fatal('ffmpeg is not installed or not on PATH. Install with: brew install ffmpeg');
     process.exit(1);
   }
 
@@ -24,8 +26,7 @@ async function checkDependencies() {
     const browser = await chromium.launch({ headless: true });
     await browser.close();
   } catch {
-    console.error('Error: Playwright Chromium browser is not installed.');
-    console.error('Install it with: bunx playwright install chromium');
+    logger.fatal('Playwright Chromium not installed. Install with: bunx playwright install chromium');
     process.exit(1);
   }
 }
@@ -33,14 +34,20 @@ async function checkDependencies() {
 await checkDependencies();
 
 if (!process.env.OPENAI_API_KEY) {
-  console.warn('Warning: OPENAI_API_KEY is not set. /api/article endpoint will not work.');
+  logger.warn('OPENAI_API_KEY is not set. /api/article endpoint will not work.');
 }
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.warn('Warning: ANTHROPIC_API_KEY is not set. /api/article endpoint will not work.');
+  logger.warn('ANTHROPIC_API_KEY is not set. /api/article endpoint will not work.');
 }
 
 const app = new Hono();
 app.use('*', cors());
+
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  await next();
+  logger.info({ method: c.req.method, path: c.req.path, status: c.res.status, ms: Date.now() - start }, 'request');
+});
 
 // ── POST /api/download ──
 app.post('/api/download', async (c) => {
@@ -157,11 +164,11 @@ app.post('/api/article', async (c) => {
 
       // Step 4: Generate article (streaming)
       await stream.writeSSE({ event: 'stage', data: JSON.stringify('writing') });
-      for await (const chunk of generateArticle(transcript, tweetInfo)) {
+      for await (const chunk of generateArticle(transcript.text, tweetInfo)) {
         await stream.writeSSE({ event: 'chunk', data: JSON.stringify(chunk) });
       }
 
-      await stream.writeSSE({ event: 'done', data: JSON.stringify('') });
+      await stream.writeSSE({ event: 'done', data: JSON.stringify({ transcript: transcript.segments }) });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       await stream.writeSSE({ event: 'error', data: JSON.stringify(message) });
@@ -173,11 +180,42 @@ app.post('/api/article', async (c) => {
   });
 });
 
+// ── POST /api/pro/signup ──
+app.post('/api/pro/signup', async (c) => {
+  const body = await c.req.json<{ email: string; interests: string[] }>();
+  const { email, interests } = body;
+
+  if (!email || !email.includes('@')) {
+    return c.json({ error: 'Valid email is required' }, 400);
+  }
+
+  const dataDir = new URL('./data', import.meta.url).pathname;
+  const signupsPath = `${dataDir}/signups.json`;
+
+  let signups: Array<{ email: string; interests: string[]; date: string }> = [];
+  try {
+    const file = Bun.file(signupsPath);
+    if (await file.exists()) {
+      signups = await file.json();
+    }
+  } catch {
+    // File doesn't exist yet
+  }
+
+  signups.push({ email, interests: interests || [], date: new Date().toISOString() });
+
+  await Bun.write(signupsPath, JSON.stringify(signups, null, 2));
+
+  logger.info({ email, interests }, 'pro signup');
+  return c.json({ success: true });
+});
+
 const PORT = Number(process.env.API_PORT) || 3001;
 
 export default {
   port: PORT,
   fetch: app.fetch,
+  idleTimeout: 200,
 };
 
-console.log(`API server running on http://localhost:${PORT}`);
+logger.info(`API server running on http://localhost:${PORT}`);

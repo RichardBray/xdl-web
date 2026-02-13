@@ -3,10 +3,18 @@ import { readFileSync } from 'node:fs';
 
 const openai = new OpenAI();
 
-/**
- * Transcribe an audio file using OpenAI Whisper.
- */
-export async function transcribeAudio(audioPath: string): Promise<string> {
+export interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface TranscriptResult {
+  text: string;
+  segments: TranscriptSegment[];
+}
+
+export async function transcribeAudio(audioPath: string): Promise<TranscriptResult> {
   const file = new File(
     [readFileSync(audioPath)],
     'audio.wav',
@@ -16,7 +24,14 @@ export async function transcribeAudio(audioPath: string): Promise<string> {
   const response = await openai.audio.transcriptions.create({
     model: 'whisper-1',
     file,
+    response_format: 'verbose_json',
   });
 
-  return response.text;
+  const segments: TranscriptSegment[] = (response.segments ?? []).map((seg) => ({
+    start: seg.start,
+    end: seg.end,
+    text: seg.text.trim(),
+  }));
+
+  return { text: response.text, segments };
 }

@@ -133,6 +133,7 @@ assert_disabled "button[type='submit']" "submit button disabled when empty"
 # Check nav links
 assert_visible "a[href='/']" "Download nav link is visible"
 assert_visible "a[href='/article']" "Article nav link is visible"
+assert_visible "a[href='/pro']" "Pro nav link is visible"
 assert_text_contains "nav" "Download" "nav has Download text"
 assert_text_contains "nav" "Article" "nav has Article text"
 
@@ -202,6 +203,104 @@ fi
 
 assert_text_contains ".status-success" "downloaded" "success message says downloaded"
 
+# Verify download history appears
+assert_visible ".download-history" "download history section is visible"
+assert_visible ".history-item" "history item is visible"
+assert_text_contains ".history-title" "Recent" "history title says Recent Downloads"
+
+section ""
+
+# ── Re-download Modal ──
+section "Re-download Modal"
+
+# Submit same URL again to trigger modal
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".modal-overlay" "re-download modal appears"
+assert_text_contains ".modal-content" "Already Downloaded" "modal says Already Downloaded"
+assert_text_contains ".modal-content" "Download Again" "modal has Download Again button"
+assert_visible ".cancel-btn" "cancel button is visible"
+
+# Close modal
+ab click ".cancel-btn" >/dev/null
+ab wait 500 >/dev/null
+
+modal_hidden=$(ab is visible ".modal-overlay" 2>/dev/null || echo "false")
+if [ "$modal_hidden" = "false" ]; then
+  pass "modal closes when cancel clicked"
+else
+  fail "modal closes when cancel clicked" "modal still visible"
+fi
+
+section ""
+
+# ── Article State Persistence ──
+section "Article State Persistence"
+
+ab click "a[href='/article']" >/dev/null
+ab wait 1000 >/dev/null
+
+# Start article generation
+ab fill "input[type='url']" "https://x.com/michaelhyunkim/status/2022004118865506681" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 5000 >/dev/null
+
+# Verify processing started
+assert_visible ".status-loading" "processing status appears"
+assert_visible ".progress-steps" "progress steps appear"
+
+# Navigate to download page
+ab click "a[href='/']" >/dev/null
+ab wait 1000 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/article"; then
+  fail "navigated to download page" "still on article page" "a[href='/']"
+else
+  pass "navigated to download page"
+fi
+
+# Navigate back to article page
+ab click "a[href='/article']" >/dev/null
+ab wait 2000 >/dev/null
+
+# Verify state is restored - processing should continue or show completed article
+processing_visible=$(ab is visible ".status-loading" 2>/dev/null || echo "false")
+article_visible=$(ab is visible ".article-display" 2>/dev/null || echo "false")
+progress_visible=$(ab is visible ".progress-steps" 2>/dev/null || echo "false")
+
+if [ "$processing_visible" = "true" ] || [ "$article_visible" = "true" ] || [ "$progress_visible" = "true" ]; then
+  pass "article state persists after navigation"
+else
+  fail "article state persists after navigation" "no progress, article, or processing visible"
+fi
+
+section ""
+
+# ── Nav Brand Navigation ──
+section "Nav Brand Navigation"
+
+ab click "a[href='/article']" >/dev/null
+ab wait 1000 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/article"; then
+  pass "on article page before brand click"
+else
+  fail "on article page before brand click" "got: $current_url"
+fi
+
+# Click x-dl brand
+ab click ".nav-brand" >/dev/null
+ab wait 1000 >/dev/null
+
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "$BASE_URL" && ! echo "$current_url" | grep -q "/article"; then
+  pass "x-dl brand navigates to home"
+else
+  fail "x-dl brand navigates to home" "got: $current_url" ".nav-brand"
+fi
+
 section ""
 
 # ── Article Markdown Rendering ──
@@ -239,6 +338,46 @@ assert_visible ".copy-btn" "copy button is visible"
 
 section ""
 
+# ── Pro Page ──
+section "Pro Page"
+
+ab click "a[href='/pro']" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".crown-icon" "crown icon is visible"
+assert_text_contains "h1" "Pro" "Pro page heading"
+assert_visible ".pro-feature-list" "features list is visible"
+assert_visible ".pro-cta" "signup CTA is visible"
+assert_text_contains ".pro-price-amount" "7.99" 'price shows $7.99'
+
+section ""
+
+# ── Pro Sign-Up Modal ──
+section "Pro Sign-Up Modal"
+
+ab click ".pro-cta" >/dev/null
+ab wait 1000 >/dev/null
+
+assert_visible ".modal-overlay" "signup modal is visible"
+assert_visible ".signup-form" "signup form is visible"
+assert_visible ".signup-interests" "interest checkboxes are visible"
+assert_visible ".signup-email" "email input is visible"
+
+# Check a feature checkbox
+ab click ".signup-checkbox:first-child input" >/dev/null
+ab fill ".signup-email" "test@example.com" >/dev/null
+ab click "button[type='submit']" >/dev/null
+ab wait 2000 >/dev/null
+
+assert_visible ".signup-success" "success message is visible"
+assert_text_contains ".signup-success" "notify" "success says notify"
+
+section ""
+
+# Close modal before navigation tests
+ab click ".modal-close" >/dev/null 2>&1 || true
+ab wait 500 >/dev/null
+
 # ── Navigation ──
 section "Navigation"
 
@@ -259,6 +398,46 @@ if echo "$current_url" | grep -q "/article"; then
 else
   fail "navigate to article page" "url is: $current_url" "a[href='/article']"
 fi
+
+ab click "a[href='/pro']" >/dev/null
+ab wait 500 >/dev/null
+current_url=$(ab get url 2>/dev/null || echo "")
+if echo "$current_url" | grep -q "/pro"; then
+  pass "navigate to pro page"
+else
+  fail "navigate to pro page" "url is: $current_url" "a[href='/pro']"
+fi
+
+section ""
+
+# ── Footer ──
+section "Footer"
+
+# Check footer on download page
+ab click "a[href='/']" >/dev/null
+ab wait 500 >/dev/null
+
+assert_visible ".site-footer" "footer is visible on download page"
+assert_text_contains ".site-footer" "Richard Oliver Bray" "footer shows author name"
+assert_text_contains ".site-footer" "Report a bug" "footer shows Report a bug link"
+
+# Check footer link
+author_link=$(ab eval "document.querySelector('.site-footer a').href" 2>/dev/null || echo "")
+if echo "$author_link" | grep -q "RichOBray"; then
+  pass "footer links to author X profile"
+else
+  fail "footer links to author X profile" "got: $author_link" ".site-footer a"
+fi
+
+# Check footer on article page
+ab click "a[href='/article']" >/dev/null
+ab wait 500 >/dev/null
+assert_visible ".site-footer" "footer is visible on article page"
+
+# Check footer on pro page
+ab click "a[href='/pro']" >/dev/null
+ab wait 500 >/dev/null
+assert_visible ".site-footer" "footer is visible on pro page"
 
 section ""
 
