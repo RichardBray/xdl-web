@@ -549,6 +549,100 @@ header h1 {
   transform: translateY(0);
 }
 
+/* ── Pro Sign-Up ── */
+.signup-intro {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.signup-intro h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.signup-intro p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.signup-interests {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.signup-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.signup-checkbox:hover {
+  border-color: rgba(227, 179, 65, 0.4);
+}
+
+.signup-checkbox input[type="checkbox"] {
+  margin-top: 0.2rem;
+  accent-color: #e3b341;
+}
+
+.checkbox-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.checkbox-label strong {
+  color: var(--text-primary);
+}
+
+.signup-email {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.signup-email:focus {
+  border-color: var(--accent);
+}
+
+.signup-email::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.signup-success {
+  text-align: center;
+  padding: 2rem;
+  background: var(--success-bg);
+  border: 1px solid rgba(46, 160, 67, 0.2);
+  border-radius: var(--radius);
+}
+
+.signup-success h2 {
+  color: var(--success);
+  font-size: 1.2rem;
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .app {

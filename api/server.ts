@@ -180,6 +180,36 @@ app.post('/api/article', async (c) => {
   });
 });
 
+// ── POST /api/pro/signup ──
+app.post('/api/pro/signup', async (c) => {
+  const body = await c.req.json<{ email: string; interests: string[] }>();
+  const { email, interests } = body;
+
+  if (!email || !email.includes('@')) {
+    return c.json({ error: 'Valid email is required' }, 400);
+  }
+
+  const dataDir = new URL('./data', import.meta.url).pathname;
+  const signupsPath = `${dataDir}/signups.json`;
+
+  let signups: Array<{ email: string; interests: string[]; date: string }> = [];
+  try {
+    const file = Bun.file(signupsPath);
+    if (await file.exists()) {
+      signups = await file.json();
+    }
+  } catch {
+    // File doesn't exist yet
+  }
+
+  signups.push({ email, interests: interests || [], date: new Date().toISOString() });
+
+  await Bun.write(signupsPath, JSON.stringify(signups, null, 2));
+
+  logger.info({ email, interests }, 'pro signup');
+  return c.json({ success: true });
+});
+
 const PORT = Number(process.env.API_PORT) || 3001;
 
 export default {
