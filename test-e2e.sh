@@ -250,7 +250,7 @@ assert_visible ".crown-icon" "crown icon is visible"
 assert_text_contains "h1" "Pro" "Pro page heading"
 assert_visible ".pro-features" "features list is visible"
 assert_visible ".pro-cta" "signup CTA is visible"
-assert_text_contains ".pro-price-amount" "7.99" "price shows $7.99"
+assert_text_contains ".pro-price-amount" "7.99" 'price shows $7.99'
 
 section ""
 
