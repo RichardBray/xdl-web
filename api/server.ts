@@ -164,11 +164,11 @@ app.post('/api/article', async (c) => {
 
       // Step 4: Generate article (streaming)
       await stream.writeSSE({ event: 'stage', data: JSON.stringify('writing') });
-      for await (const chunk of generateArticle(transcript, tweetInfo)) {
+      for await (const chunk of generateArticle(transcript.text, tweetInfo)) {
         await stream.writeSSE({ event: 'chunk', data: JSON.stringify(chunk) });
       }
 
-      await stream.writeSSE({ event: 'done', data: JSON.stringify('') });
+      await stream.writeSSE({ event: 'done', data: JSON.stringify({ transcript: transcript.segments }) });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       await stream.writeSSE({ event: 'error', data: JSON.stringify(message) });
