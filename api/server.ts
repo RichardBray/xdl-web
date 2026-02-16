@@ -1,6 +1,7 @@
 import pino from 'pino';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { serveStatic } from 'hono/bun';
 import { streamSSE } from 'hono/streaming';
 import { isValidTwitterUrl, parseTweetUrl, generateFilename } from 'x-dl/src/utils.ts';
 import { VideoExtractor } from 'x-dl/src/extractor.ts';
@@ -209,6 +210,10 @@ app.post('/api/pro/signup', async (c) => {
   logger.info({ email, interests }, 'pro signup');
   return c.json({ success: true });
 });
+
+// ── Static file serving (production) ──
+app.use('*', serveStatic({ root: './dist' }));
+app.use('*', serveStatic({ path: './dist/index.html' }));
 
 const PORT = Number(process.env.API_PORT) || 3001;
 

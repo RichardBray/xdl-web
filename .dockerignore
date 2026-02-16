@@ -1,0 +1,7 @@
+xdl-web/node_modules
+xdl-web/dist
+xdl-web/.env
+x-dl/node_modules
+x-dl/dist
+.git
+*.md
