@@ -1,0 +1,3 @@
+xdl.robray.dev {
+	reverse_proxy app:3001
+}
