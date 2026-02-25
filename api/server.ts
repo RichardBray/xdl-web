@@ -215,7 +215,7 @@ app.post('/api/pro/signup', async (c) => {
 app.use('*', serveStatic({ root: './dist' }));
 app.use('*', serveStatic({ path: './dist/index.html' }));
 
-const PORT = Number(process.env.API_PORT) || 3001;
+const PORT = Number(process.env.PORT) || 3001;
 
 export default {
   port: PORT,
