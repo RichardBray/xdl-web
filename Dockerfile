@@ -15,10 +15,17 @@ RUN bun install --frozen-lockfile
 
 # Copy source and build frontend
 COPY xdl-web/ ./
-RUN bun run build
+RUN bunx vite build
 
 # ── Production stage ──
-FROM oven/bun:1-slim
+# Use Playwright base image which already has Chromium + all system deps
+FROM mcr.microsoft.com/playwright:v1.57.0-noble
+
+# Install Bun
+RUN apt-get update && apt-get install -y --no-install-recommends unzip && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:$PATH"
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
@@ -35,8 +42,12 @@ COPY --from=build /build/xdl-web/node_modules ./node_modules
 COPY --from=build /build/xdl-web/api ./api
 COPY --from=build /build/xdl-web/dist ./dist
 
-# Install Playwright Chromium
-RUN bunx playwright install --with-deps chromium
+# Overwrite node_modules/x-dl with a real copy (not symlinks to the host)
+COPY --from=build /build/x-dl ./node_modules/x-dl
+
+# Install Chromium matching the exact playwright version in node_modules
+# (no --with-deps: system deps already in base image)
+RUN PLAYWRIGHT_BROWSERS_PATH=/ms-playwright ./node_modules/.bin/playwright install chromium
 
 # Create data directory for signups
 RUN mkdir -p /app/api/data
