@@ -10,6 +10,7 @@ import { extractAudio } from './audio.ts';
 import { transcribeAudio } from './transcribe.ts';
 import { generateArticle } from './article.ts';
 import { unlink } from 'node:fs/promises';
+import { captureTweetScreenshot } from './screenshot.ts';
 
 const logger = pino({ name: 'xdl-api' });
 
@@ -179,6 +180,28 @@ app.post('/api/article', async (c) => {
       }
     }
   });
+});
+
+// ── POST /api/screenshot ──
+app.post('/api/screenshot', async (c) => {
+  const body = await c.req.json<{ url: string; theme: 'dark' | 'light'; hideActions: boolean }>();
+  const { url, theme = 'dark', hideActions = false } = body;
+
+  if (!url || !isValidTwitterUrl(url)) {
+    return c.json({ error: 'Invalid or missing Twitter/X URL' }, 400);
+  }
+
+  try {
+    const buffer = await captureTweetScreenshot(url, theme, hideActions);
+    const base64 = buffer.toString('base64');
+    return c.json({ image: `data:image/png;base64,${base64}` });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to capture screenshot';
+    if (message.includes('Could not find tweet')) {
+      return c.json({ error: message }, 422);
+    }
+    return c.json({ error: message }, 500);
+  }
 });
 
 // ── POST /api/pro/signup ──
