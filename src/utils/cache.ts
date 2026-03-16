@@ -56,11 +56,19 @@ interface ScreenshotCacheEntry {
   timestamp: number;
 }
 
+const SCREENSHOT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export function getScreenshotCache(url: string, theme: string, hideActions: boolean): ScreenshotCacheEntry | null {
   try {
-    const raw = localStorage.getItem(getScreenshotKey(url, theme, hideActions));
+    const key = getScreenshotKey(url, theme, hideActions);
+    const raw = localStorage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const entry: ScreenshotCacheEntry = JSON.parse(raw);
+    if (Date.now() - entry.timestamp > SCREENSHOT_CACHE_TTL_MS) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return entry;
   } catch {
     return null;
   }
