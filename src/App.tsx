@@ -4,6 +4,7 @@ import { Footer } from './components/Footer';
 import { DownloadPage } from './pages/DownloadPage';
 import { ArticlePage } from './pages/ArticlePage';
 import { ProPage } from './pages/ProPage';
+import { ScreenshotPage } from './pages/ScreenshotPage';
 import { ArticleProvider } from './contexts/ArticleContext';
 import './App.css';
 
@@ -16,6 +17,7 @@ function App() {
           <Routes>
             <Route path="/" element={<DownloadPage />} />
             <Route path="/article" element={<ArticlePage />} />
+            <Route path="/screenshot" element={<ScreenshotPage />} />
             <Route path="/pro" element={<ProPage />} />
           </Routes>
         </div>
