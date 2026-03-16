@@ -49,9 +49,15 @@ export function ScreenshotPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
+        let errorMsg = 'Screenshot failed';
+        try {
+          const data = await res.json();
+          errorMsg = data.error || errorMsg;
+        } catch {
+          // Response may not be JSON (e.g. proxy error)
+        }
         setStatus('error');
-        setMessage(data.error || 'Screenshot failed');
+        setMessage(errorMsg);
         return;
       }
 
