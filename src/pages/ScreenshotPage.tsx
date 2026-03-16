@@ -28,9 +28,11 @@ export function ScreenshotPage() {
   const [settings, setSettings] = useState<ScreenshotSettings>(DEFAULT_SETTINGS);
   const [activePreset, setActivePreset] = useState<number | null>(4); // Gradient Purple
   const previewRef = useRef<ScreenshotPreviewHandle>(null);
+  const requestIdRef = useRef(0);
   const canCopy = typeof navigator !== 'undefined' && !!navigator.clipboard?.write;
 
   const fetchScreenshot = useCallback(async (url: string, theme: 'dark' | 'light', hide: boolean) => {
+    const myId = ++requestIdRef.current;
     const cached = getScreenshotCache(url, theme, hide);
     if (cached) {
       setImageData(cached.image);
@@ -62,6 +64,7 @@ export function ScreenshotPage() {
       }
 
       const data = await res.json();
+      if (requestIdRef.current !== myId) return; // stale — discard
       setImageData(data.image);
       setStatus('success');
       setScreenshotCache(url, theme, hide, data.image);
