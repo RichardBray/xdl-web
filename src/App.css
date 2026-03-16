@@ -848,6 +848,220 @@ header h1 {
   color: var(--border);
 }
 
+/* ── Screenshot Page ── */
+.screenshot-workspace {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem 0.5rem;
+}
+
+.screenshot-preview {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.screenshot-preview canvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.screenshot-controls {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.screenshot-controls-section {
+  margin-bottom: 1.25rem;
+}
+
+.screenshot-controls-section h4 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.screenshot-toggle-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.screenshot-toggle {
+  flex: 1;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.screenshot-toggle:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.screenshot-toggle:hover {
+  background: var(--hover-bg);
+}
+
+.screenshot-toggle.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.screenshot-preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.screenshot-preset-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.screenshot-preset-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.screenshot-preset-btn.active {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.preset-swatches {
+  display: flex;
+  gap: 2px;
+}
+
+.preset-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.screenshot-color-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+}
+
+.screenshot-color-picker label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.screenshot-color-picker input[type="color"] {
+  width: 32px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.screenshot-slider {
+  padding: 0.3rem 0;
+}
+
+.screenshot-slider label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.screenshot-slider input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.screenshot-aspect-btns {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.screenshot-aspect-btns .screenshot-toggle {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.screenshot-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.screenshot-download-btn {
+  display: block;
+  text-align: center;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.screenshot-download-btn:hover {
+  background: var(--accent-hover);
+}
+
+.screenshot-copy-btn {
+  display: block;
+  text-align: center;
+  padding: 0.6rem 2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.screenshot-copy-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .app {
@@ -867,5 +1081,17 @@ header h1 {
   .input-form button {
     width: 100%;
     padding: 0.7rem;
+  }
+
+  .screenshot-workspace {
+    flex-direction: column;
+  }
+
+  .screenshot-controls {
+    width: 100%;
+  }
+
+  .screenshot-preview {
+    min-width: 0;
   }
 }
