@@ -45,6 +45,35 @@ export function clearCache(url: string, type: 'download' | 'article'): void {
   }
 }
 
+// ── Screenshot Cache ──
+
+function getScreenshotKey(url: string, theme: string, hideActions: boolean): string {
+  return `${CACHE_PREFIX}screenshot:${url}:${theme}:${hideActions}`;
+}
+
+interface ScreenshotCacheEntry {
+  image: string;
+  timestamp: number;
+}
+
+export function getScreenshotCache(url: string, theme: string, hideActions: boolean): ScreenshotCacheEntry | null {
+  try {
+    const raw = localStorage.getItem(getScreenshotKey(url, theme, hideActions));
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function setScreenshotCache(url: string, theme: string, hideActions: boolean, image: string): void {
+  try {
+    localStorage.setItem(getScreenshotKey(url, theme, hideActions), JSON.stringify({ image, timestamp: Date.now() }));
+  } catch {
+    // localStorage full or unavailable
+  }
+}
+
 // ── Download History ──
 
 const HISTORY_KEY = 'xdl-download-history';
